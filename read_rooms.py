@@ -92,7 +92,7 @@ def fread_string(fl):
 
 
 def parse_into_zone(zone_prefix):
-    filename = "dm-dist/lib/diku_tinyworld.wld"
+    filename = "dm-dist/lib/tinyworld.wld"
     #fl = open(filename, "r")
     fl = fileinput.input(filename)
 

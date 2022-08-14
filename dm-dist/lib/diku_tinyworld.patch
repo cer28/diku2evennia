@@ -1,0 +1,56 @@
+diff -ruN a/tinyworld.mob b/tinyworld.mob
+--- a/tinyworld.mob	2022-08-14 14:35:41.031992900 -0400
++++ b/tinyworld.mob	2022-08-14 14:36:35.876481800 -0400
+@@ -1356,8 +1356,7 @@
+ 2 524296 -1000 S
+ 30 0 -10 1d1+665 1d100+0
+ 0 500000
+-8 8
+-0
++8 8 0
+ #7000
+ mud monster mudmonster~
+ The horrifying Mudmonster~
+diff -ruN a/tinyworld.wld b/tinyworld.wld
+--- a/tinyworld.wld	2022-08-14 14:31:04.848979600 -0400
++++ b/tinyworld.wld	2022-08-14 14:34:47.365931900 -0400
+@@ -408,7 +408,6 @@
+ ~
+ ~
+ 0 -1 3013
+-
+ E
+ statue~
+ What you see is the Midgaard Worm, stretching around the Palace of Midgaard.
+@@ -11656,6 +11655,7 @@
+ The socket looks like the work of a dwarf. It is VERY
+ beautifull.
+ ~
++E
+ crystal globe~
+ The crystal globe is glowing with a pulsing light. It
+ looks like there is smoke inside it.
+@@ -12238,6 +12238,7 @@
+ ~
+ ~
+ 0 -1 7431
++E
+ down~
+ A sign is blocking the way. It says 'This has not been
+ implementated yet....'
+@@ -12382,7 +12383,6 @@
+ ~
+ ~
+ 0 -1 7440
+-5~
+ E
+ hay~
+ The hay is very dirty. The smell of it makes you feel sick.
+@@ -14689,7 +14689,6 @@
+ _very_ steeply down into darkness.
+ ~
+ ~
+-
+ 0 -1 8104
+ E
+ slabs glass wall~
