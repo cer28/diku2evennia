@@ -1,9 +1,11 @@
 # diku2evennia
-This project contains a few basic scripts to convert original DikMUD DB files from their native format into Evennia-style batchcode. The resulting
-batchcode files can then be imported into an Evennia world to create rooms. exits, mobs, objects, and shops.
+This project contains a few basic scripts to convert original DikMUD DB files from their native format into
+Evennia-style batchcode. The resulting  batchcode files can then be imported into an Evennia world to create rooms.
+exits, mobs, objects, and shops.
 
 ## Installation
-DikuMUD DB files have not been included with this project. The original Tinyworld object files may be downloaded from various places, such as:
+DikuMUD DB files have not been included with this project. The original Tinyworld object files may be downloaded from
+various places, such as:
 
 - [DikuMUD Alfa version](https://github.com/Seifert69/DikuMUD) essentially the "official" release (see https://dikumud.com/download/), re-licensed under LGPL 2.1
 - [alternative source on GitHub 1](https://github.com/sneezymud/dikumud)
@@ -11,8 +13,8 @@ DikuMUD DB files have not been included with this project. The original Tinyworl
 - [diku-linux.tar.gz 1](http://ftp.lip6.fr/pub/linux/sunsite/games/muds/diku-linux.tar.gz) (1992-12-02 290K)
 - [diku-linux.tar.gz 2](http://ftp.gwdg.de/pub/linux/funet/xtra/games/muds/diku-linux.tar.gz) (01-Dec-1992 22:00 296375 bytes)
 
-There are slight differences in the data between the distributions. For example, "Luxan the Shopkeeper" and "The Hierophant" appears in some versions
-but not others. Either version should work with these scripts.
+There are slight differences in the data between the distributions. For example, "Luxan the Shopkeeper" and "The
+Hierophant" appears in some versions but not others. Either version should work with these scripts.
 
 From the distribution, copy the files dm-dist/lib/tinyworld.* into this project's dm-dist/lib folder.
 
@@ -26,9 +28,15 @@ dm-dist/lib/tinyworld.shp
 dm-dist/lib/tinyworld.zon
 ```
 
+Additional [sample areas](./Caw-archive/Files/) have been included here from the CAW (Curious Areas Workshop) project.
+The original files are  no longer available online, but have been obtained from [the archive.org snapshot](https://web.archive.org/web/20040604021951/http://qsilver.queensu.ca/~fletchra/Caw/).
+Please note the [LICENSE](Caw-archive/Files/LICENSE.md) associated with the files. Also note that the files are named
+verbatim from the original ending in "*.tar.gz"; however, the files are actually tar files and not gzipped.
+
 ## Usage
 
-There are a few places in the original files where non-standard formatting causes issues with parsing. To fix these, run the patch file:
+There are a few places in the original files where non-standard formatting causes issues with parsing. To fix these, run
+the patch file:
 
 ```
 patch -u -b -i dm-dist/lib/diku_tinyworld.patch
@@ -93,7 +101,8 @@ Please make sure to update tests as appropriate.
 
 ## Debugging
 
-This code is currently alpha status and in early development. To check the status of your imported world, count in the evennia database:
+This code is currently alpha status and in early development. To check the status of your imported world, count in the
+evennia database:
 
 ```
 After creating rooms
