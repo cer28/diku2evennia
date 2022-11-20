@@ -1,6 +1,7 @@
 import re
 import fileinput
 import random
+import argparse
 
 
 # struct char_data *read_mobile(int nr, int type)
@@ -12,7 +13,7 @@ def fread_string(fl):
     ret = ""
     while True:
         line = fl.readline()
-        m = re.search("^([^~]*)(~)?", line)
+        m = re.search(r'^([^~]*)(~)?', line)
         if m.group(2):
             if len(m.group(1)):  #todo why is the trailing newline still there?
                  ret = ret + m.group(1).rstrip("\n\r")
@@ -30,30 +31,35 @@ def dice(n, d):
     return ret
 
 def main():
-    filename = "dm-dist/lib/tinyworld.mob"
-    #fl = open(filename, "r")
-    fl = fileinput.input(filename)
+    default_mob_file = "dm-dist/lib/tinyworld.mob"
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-m", "--mobs",
+                        help=f"*.mob file containing mob definitions (default {default_mob_file})",
+                        default=default_mob_file)
+    args = parser.parse_args()
+
+    fl = fileinput.input(args.mobs)
     
     while True:
         mob = {
-            'id' : None,
-            'name' : None,
-            'short_descr' : None,
-            'long_descr' : None,
-            'description' : None,
-            'title' : 0,
-            'act'  : None,
-            'affected_by' : None,
-            'alignment' : None,
-            'mobtype' : None,
+            'id': None,
+            'name': None,
+            'short_descr': None,
+            'long_descr': None,
+            'description': None,
+            'title': 0,
+            'act': None,
+            'affected_by': None,
+            'alignment': None,
+            'mobtype': None,
         }
         
         line = fl.readline().rstrip("\n\r")
 
         # Mob number
-        m = re.search("^(#\w+)$", line)
-        if m == None:
-            print("ERROR: line %d: Couldn't read a mob number out of '%s'" % (fl.lineno(), line))
+        m = re.search(r'^(#\w+)$', line)
+        if m is None:
+            print(f"ERROR: line {fl.lineno():d}: Couldn't read a mob number out of '{line}'")
             break
         else:
             mob['id'] = m.group(1)
@@ -70,7 +76,7 @@ def main():
 
         # act affected_by alignment
         line = fl.readline()
-        m = re.search("^([\d-]+)\s+([\d-]+)\s+([\d+-]+)\s+([A-Z])", line)
+        m = re.search(r'^([\d-]+)\s+([\d-]+)\s+([\d+-]+)\s+([A-Z])', line)
 
         if m == None:
             print("ERROR: line %d: Couldn't read the mob flags line from '%s'" % (fl.lineno(), line))
@@ -83,7 +89,7 @@ def main():
         
         if mob['mobtype'] == "S":
             line = fl.readline()
-            m = re.search("^([\d-]+)\s+([\d-]+)\s+([\d-]+)\s+(\d+)d(\d+)\+(\d+)\s+(\d+)d(\d+)\+(\d+)", line)
+            m = re.search(r'^([\d-]+)\s+([\d-]+)\s+([\d-]+)\s+(\d+)d(\d+)\+(\d+)\s+(\d+)d(\d+)\+(\d+)', line)
 
             if m == None:
                 print("ERROR: line %d: Couldn't read the mob flags line from '%s'" % (fl.lineno(), line))
@@ -103,8 +109,8 @@ def main():
             mob['max_move'] = 50
 
             line = fl.readline()
-            m = re.search("^([\d-]+)\s+([\d-]+)", line)
-            if m == None:
+            m = re.search(r'^([\d-]+)\s+([\d-]+)', line)
+            if m is None:
                 print("ERROR: line %d: Couldn't read the mob gold/exp line from '%s'" % (fl.lineno(), line))
                 break
             
@@ -112,8 +118,8 @@ def main():
             mob['exp_value'] = m.group(2)
 
             line = fl.readline()
-            m = re.search("^([\d-]+)\s+([\d-]+)\s+([\d-]+)", line)
-            if m == None:
+            m = re.search(r'^([\d-]+)\s+([\d-]+)\s+([\d-]+)', line)
+            if m is None:
                 print("ERROR: line %d: Couldn't read the position/gender line from '%s'" % (fl.lineno(), line))
                 break
 
@@ -128,7 +134,7 @@ def main():
             mob['apply_saving_throw'] = max(20 - int(mob['level']), 2)
         
         else:
-            print("ERROR: line %d: Can't yet handle non-S types" % fl.lineno())
+            print(f"ERROR: line {fl.lineno():d}: Can't yet handle non-S types")
         
         print("Finished reading a mob: %s" % mob['id'])
         #import pprint

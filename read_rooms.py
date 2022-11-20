@@ -6,6 +6,7 @@
 
 import re
 import fileinput
+import argparse
 
 class DikuRoom:
 
@@ -62,8 +63,8 @@ class DikuRoom:
         self.zone = None
         self.room_bits = None
         self.sector_type = None
-        self.extra_desc = []
-        self.directions = {}
+        self.extra_desc: list = []
+        self.directions: dict = {}
         self._seen = False
         self._reachable = False
 
@@ -80,7 +81,7 @@ def fread_string(fl):
     ret = ""
     while True:
         line = fl.readline()
-        m = re.search("^([^~]*)(~)?", line)
+        m = re.search(r'^([^~]*)(~)?', line)
         if m.group(2):
             if len(m.group(1)):  #todo why is the trailing newline still there?
                  ret = ret + m.group(1)
@@ -91,9 +92,7 @@ def fread_string(fl):
     return ret
 
 
-def parse_into_zone(zone_prefix):
-    filename = "dm-dist/lib/tinyworld.wld"
-    #fl = open(filename, "r")
+def parse_into_zone(filename, zone_prefix):
     fl = fileinput.input(filename)
 
     rooms = {}
@@ -113,18 +112,18 @@ def parse_into_zone(zone_prefix):
         line = fl.readline().rstrip("\n\r")
 
         # Room number
-        m = re.search("^(#\w+)$", line)
-        if m == None:
+        m = re.search(r'^(#\w+)$', line)
+        if m is None:
             print("#ERROR: line %d: Couldn't read a room number out of '%s' -- exiting" % (fl.lineno(), line))
             break
         else:
             room.id = m.group(1)
 
         # Room Name
-        room.name = fread_string(fl).replace("'","\\'")
+        room.name = fread_string(fl).replace("'", "\\'")
 
-        if (re.search(";", room.name)):
-            print("#WARNING: line %d: Room name for room %s (%s) contains a semicolon, could be bad in a @batchcommand line" % (fl.lineno(), room.id, room.name))
+        if re.search(r';', room.name):
+            print(f"#WARNING: line {fl.lineno():d}: Room name for room {room.id} ({room.name}) contains a semicolon, could be bad in a @batchcommand line")
             room.name = room.name.replace(";", "<semicolon>")
 
         if room.name == "$":
@@ -139,7 +138,7 @@ def parse_into_zone(zone_prefix):
         
         # Zone flags sector
         line = fl.readline()
-        m = re.search("^([\d-]+)\s([\d-]+)\s([\d-]+)", line)
+        m = re.search(r'^([\d-]+)\s([\d-]+)\s([\d-]+)', line)
         if m == None:
             print("#ERROR: line %d: Couldn't read the zone/flag/sector line from '%s'" % (fl.lineno(), line))
             break
@@ -154,8 +153,8 @@ def parse_into_zone(zone_prefix):
             if line.startswith("S"):
                 break
             elif line.startswith("D"):
-                m = re.search("^D(\d+)\s", line)
-                if m == None:
+                m = re.search(r'^D(\d+)\s', line)
+                if m is None:
                     print("#ERROR: line %d: Can't match a direction for '%s'" % (fl.lineno(), line))
                     break
                 tmp_dir = m.group(1)
@@ -174,9 +173,8 @@ def parse_into_zone(zone_prefix):
 
                 
                 # there shouldn't blank lines, but if there are, ignore them
-                if re.search("^\W*$", line):
+                if re.search(r'^\W*$', line):
                     print("#   ... but quietly ignoring this blank line")
-                    next
                 else:
                     break
 
@@ -200,68 +198,68 @@ def room_batch_commands(rooms, room):
 
         #print room.printBatchCommand(rooms)
         zid = room.getZonePlusId()
-        print "@tel %s" % zid
-        print "#"        
-        print "@desc %s = %s" % (zid, room.desc)
-        print "#"
+        print(f"@tel {zid}")
+        print("#")
+        print(f"@desc {zid} = {room.desc}")
+        print("#")
 
-        for (dir, ex) in room.directions.iteritems():
+        for (dir, ex) in room.directions.items():
         
             k = "#" + ex['target']
             dir = DikuRoom.dir_options[dir]['dir']
             if k in rooms.keys():
                 # assume the exit is to the same zone, since it's ambiguous otherwise
-                print "@tunnel/oneway %s = %s;%s#%s" % (dir, rooms[k].name, rooms[k].zone, ex['target'])
-                print "#"
+                print(f"@tunnel/oneway {dir} = {rooms[k].name};{rooms[k].zone}#{ex['target']}")
+                print("#")
             else:
-                print "#ERROR: (ROOM DOES NOT EXIST) @tunnel/oneway %s = %s#%s" % (dir, room.zone, ex['target'])
+                print (f"#ERROR: (ROOM DOES NOT EXIST) @tunnel/oneway {dir} = {room.zone}#{ex['target']}")
 
         room._seen = True
-        for (dir, ex) in room.directions.iteritems():
+        for (dir, ex) in room.directions.items():
 
             k = "#" + ex['target']
             if k in rooms.keys():
                 room_batch_commands(rooms, rooms[k])
             else:
-                print "#ERROR: Room %s refers to exit to %s which does not exist" % (room.id, k)
+                print (f"#ERROR: Room {room.id} refers to exit to {k} which does not exist")
 
 def room_batch_code(rooms, room):
         if room._seen:
-            print "#ERROR: Already output room %s" % room.id
+            print (f"#ERROR: Already output room {room.id}")
             return
         else:
             key = room.getZonePlusId()
-            print "rooms['%s'] = create_object(typeclasses.rooms.Room, key='%s', aliases=['%s',])" % (key, room.name, key)
+            print (f"rooms['{key}'] = create_object(typeclasses.rooms.Room, key='{room.name}', aliases=['{key}',])")
             room._seen = True
 
 def room_batch_code_exits(rooms, room):
         if not room._seen:
-            print "#ERROR: Printing exits for room %s which hasn't been created yet" % room.id
+            print (f"#ERROR: Printing exits for room {room.id} which hasn't been created yet")
             return
         else:
-            for (dir, ex) in room.directions.iteritems():
+            for (dir, ex) in room.directions.items():
                 tmp = "#" + ex['target']
                 if tmp in rooms.keys():
                     room2 = rooms[tmp]
                     if room2._seen:
                         #todo custom aliases
-                        print "new_exit = create_object(typeclasses.exits.Exit, key='%s', aliases=['%s'], location=rooms['%s'], destination=rooms['%s'])" % (DikuRoom.dir_options[dir]['def'], DikuRoom.dir_options[dir]['dir'], room.getZonePlusId(), room2.getZonePlusId())
+                        print (f"new_exit = create_object(typeclasses.exits.Exit, key='{DikuRoom.dir_options[dir]['def']}', aliases=['{DikuRoom.dir_options[dir]['dir']}'], location=rooms['{room.getZonePlusId()}'], destination=rooms['{room2.getZonePlusId()}'])")
                         room2._reachable = True
                     else:
-                        print "#ERROR: Room %s has an exit to room %s, which hasn't been output" % (room.id, room2.id)                    
+                        print (f"#ERROR: Room {room.id} has an exit to room {room2.id}, which hasn't been output")
                 else:
-                    print "#ERROR: Room %s refers to exit to %s which does not exist" % (room.id, tmp)
+                    print (f"#ERROR: Room {room.id} refers to exit to {tmp} which does not exist")
 
 def create_batch_output(room_list, output_type):
     if output_type not in ('batchcommand', 'batchcode'):
-        print "#ERROR creating output, unknown output type '%s'" % output_type
+        print (f"#ERROR creating output, unknown output type '{output_type}'")
         return
 
     rooms = {}
     for room in room_list:
         rooms[room.id] = room
 
-    if (output_type == 'batchcommand'):
+    if output_type == 'batchcommand':
         # Just need the first room, and it will do a breadth-first walk through anything connected
         room_batch_commands(rooms, room_list[0])
 
@@ -269,15 +267,15 @@ def create_batch_output(room_list, output_type):
         #    if not room._seen:
         #        print "#WARNING: Room not linked: %s - %s" % (room.id, room.name)
         for room in [ r for r in room_list if not r._seen ]:
-            print "#WARNING: Room %s (%s) is unreachable from any path starting from %s" % (room.id, room.name, room_list[0].id)
+            print (f"#WARNING: Room {room.id} ({room.name}) is unreachable from any path starting from {room_list[0].id}")
 
-    elif (output_type == 'batchcode'):
+    elif output_type == 'batchcode':
 
-        print "from evennia import create_object\n" \
+        print ("from evennia import create_object\n" \
             "import typeclasses.rooms\n" \
             "import typeclasses.exits\n" \
             "\n" \
-            "rooms = {}\n"
+            "rooms = {}\n")
 
         # Create all the rooms in order
         ct = 0
@@ -285,33 +283,33 @@ def create_batch_output(room_list, output_type):
             room_batch_code(rooms, room)
             ct += 1
             if ct % 100 == 0:
-                print 'print "Rooms created: %d"' % ct
+                print (f'print "Rooms created: {ct:d}"')
 
-        print 'print "Rooms created: %d"' % ct
+        print (f'print "Rooms created: {ct:d}"')
 
         # Now create all the exists in order
-        print "\n# -- Exits --"
+        print ("\n# -- Exits --")
         ct = 1
         for room in room_list:
             room_batch_code_exits(rooms, room)
             ct += 1
             if ct % 100 == 0:
-                print 'print "Rooms with exits: %d"' % ct
+                print (f'print "Rooms with exits: {ct:d}"')
 
-        print 'print "Rooms with exits: %d"' % ct
+        print (f'print "Rooms with exits: {ct:d}"')
         
         for room in [ r for r in room_list if not r._reachable ]:
-            print "#WARNING: Room %s (%s) is unreachable from any other room" % (room.id, room.name)
+            print (f"#WARNING: Room {room.id} ({room.name}) is unreachable from any other room")
         
     
 
 
 
 def create_batch_commands(room_list, start, direction):
-    print "@tel " + start
-    print "#"
-    print "@tunnel/oneway %s = %s;%s" % ( direction, room_list[0].name, room_list[0].getZonePlusId())
-    print "#"
+    print ("@tel {start}")
+    print ("#")
+    print (f"@tunnel/oneway {direction} = {room_list[0].name};{room_list[0].getZonePlusId()}")
+    print ("#")
     create_batch_output(room_list, 'batchcommand')
 
 
@@ -319,8 +317,14 @@ def create_batch_code(room_list):
     create_batch_output(room_list, 'batchcode')
 
 
+default_world_file = "dm-dist/lib/tinyworld.wld"
+parser = argparse.ArgumentParser()
+parser.add_argument("-r", "--rooms",
+                    help=f"*.wld file containing room definitions (default {default_world_file})",
+                    default=default_world_file)
+args = parser.parse_args()
 
-room_list = parse_into_zone("tinyworld")
+room_list = parse_into_zone(args.rooms, "tinyworld")
 
 #create_batch_commands(room_list, "Limbo", "e")
 
